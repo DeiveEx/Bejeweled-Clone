@@ -464,62 +464,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1428846147
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1428846150}
-  - component: {fileID: 1428846149}
-  - component: {fileID: 1428846148}
-  m_Layer: 0
-  m_Name: Game_Manager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1428846148
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1428846147}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: df981da9478f8eb4ca3cb8f976879c65, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &1428846149
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1428846147}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 95236c92329097f4abb46a37809d65f8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!4 &1428846150
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1428846147}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 452.12756, y: 237.777, z: -25.06875}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1438333291
 GameObject:
   m_ObjectHideFlags: 0
@@ -718,6 +662,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   showDebugInfo: 0
+  canvas: {fileID: 846428042}
   boardSize: {x: 8, y: 8}
   padding:
     m_Left: 10
@@ -725,8 +670,9 @@ MonoBehaviour:
     m_Top: 10
     m_Bottom: 10
   spacing: {x: 10, y: 10}
-  cellsParent: {fileID: 1499257121}
-  availableCells:
+  piecesParent: {fileID: 1499257121}
+  minDragDistance: 10
+  availablePieces:
   - {fileID: 5334081687116021757, guid: d316abaa6d37ce0489e1000dd58392f0, type: 3}
   - {fileID: 5334081687116021757, guid: 389b9bea52e33ad44b484c87e1ffc636, type: 3}
   - {fileID: 5334081687116021757, guid: f736e739556338847a9c0b9e9db93fe1, type: 3}

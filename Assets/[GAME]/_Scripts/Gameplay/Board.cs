@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -16,13 +17,15 @@ public class Board : MonoBehaviour
     [SerializeField] private Vector2 spacing;
 	[SerializeField] private RectTransform piecesParent;
 	[SerializeField] private float minDragDistance = 30;
+	[SerializeField] private int minMatchCount = 3;
 
-	public GamePiece[] availablePieces;
+	public GamePiece[] availablePieces; //TODO change from prefabs to pools?
 
 	private GamePiece[,] currentPieces;
 	private Vector2 pieceSize;
 	private GamePiece selectedPiece;
 	private Vector2 touchPos;
+	private List<List<GamePiece>> matches = new List<List<GamePiece>>();
 
 	private void Start()
 	{
@@ -74,14 +77,21 @@ public class Board : MonoBehaviour
 		{
 			for (int y = 0; y < boardSize.y; y++)
 			{
-				GamePiece piece = Instantiate(availablePieces[Random.Range(0, availablePieces.Length)], piecesParent);
-				piece.rectTransform.anchorMin = piece.rectTransform.anchorMax = Vector2.one * .5f; //Centralizes the anchors
-				piece.rectTransform.sizeDelta = pieceSize - spacing;
-				SetPieceGridPosition(piece, x, y);
-				piece.touchedPieceEvent += SelectPiece;
-				piece.releasedPieceEvent += ReleasePiece;
+				CreatePieceAtPosition(x, y);
 			}
 		}
+	}
+
+	private GamePiece CreatePieceAtPosition(int x, int y)
+	{
+		GamePiece piece = Instantiate(availablePieces[Random.Range(0, availablePieces.Length)], piecesParent);
+		piece.rectTransform.anchorMin = piece.rectTransform.anchorMax = Vector2.one * .5f; //Centralizes the anchors
+		piece.rectTransform.sizeDelta = pieceSize - spacing;
+		SetPieceGridPosition(piece, x, y);
+		piece.touchedPieceEvent += SelectPiece;
+		piece.releasedPieceEvent += ReleasePiece;
+
+		return piece;
 	}
 
 	private void SetPieceGridPosition(GamePiece p, int x, int y)
@@ -89,6 +99,23 @@ public class Board : MonoBehaviour
 		p.rectTransform.anchoredPosition = piecesParent.rect.position + (pieceSize * .5f) + new Vector2((pieceSize.x * x) + padding.left, (pieceSize.y * y) + padding.bottom);
 		p.boardPos = new Vector2Int(x, y);
 		currentPieces[x, y] = p;
+	}
+
+	public void SwapPieces(GamePiece p1, GamePiece p2)
+	{
+		//Check if we can swap these pieces by verifying their board positions. We can only swap adjacent pieces that are not in a diagonal
+		int dstX = Mathf.Abs(p1.boardPos.x - p2.boardPos.x);
+		int dstY = Mathf.Abs(p1.boardPos.y - p2.boardPos.y);
+
+		if ((dstX == 1 || dstY == 1) && dstX + dstY == 1) //TODO We can easily adapt the game to accept diagonal swaps by changing this condition
+		{
+			Vector2Int pos1 = p1.boardPos;
+			SetPieceGridPosition(p1, p2.boardPos.x, p2.boardPos.y);
+			SetPieceGridPosition(p2, pos1.x, pos1.y);
+		}
+
+		//After a swap is executed (successfully or not), we clear the selected piece
+		selectedPiece = null;
 	}
 
 	private void SelectPiece(GamePiece c)
@@ -179,40 +206,73 @@ public class Board : MonoBehaviour
 		SwapPieces(p1, p2);
 
 		//If after the swipe a match was NOT found, we return the pieces to their original positions
-		//if (!CheckForMatches()) //TODO uncomment this
-		//{
-		//	SwapPieces(p1, p2);
-		//}
-	}
-
-	public void SwapPieces(GamePiece p1, GamePiece p2)
-	{
-		//Check if we can swap these pieces by verifying their board positions. We can only swap adjacent pieces that are not in a diagonal
-		int dstX = Mathf.Abs(p1.boardPos.x - p2.boardPos.x);
-		int dstY = Mathf.Abs(p1.boardPos.y - p2.boardPos.y);
-
-		if ((dstX == 1 || dstY == 1) && dstX + dstY == 1)
+		if (!CheckForMatches())
 		{
-			Vector2Int pos1 = p1.boardPos;
-			SetPieceGridPosition(p1, p2.boardPos.x, p2.boardPos.y);
-			SetPieceGridPosition(p2, pos1.x, pos1.y);
+			SwapPieces(p1, p2);
 		}
 
-		//After a swap is executed (successfully or not), we clear the selected piece
-		selectedPiece = null;
 	}
 
 	public bool CheckForMatches()
 	{
+		matches.Clear();
+		Debug.Log(matches.Count);
+
 		for (int i = 0; i < boardSize.x; i++)
 		{
 			for (int j = 0; j < boardSize.y; j++)
 			{
-				
+				CheckSurroundingPieces(currentPieces[i, j]);
 			}
 		}
+		Debug.Log(matches.Count);
 
-		return false;
+		//Did we find any macth?
+		return matches.Count > 0;
+	}
+
+	private void CheckSurroundingPieces(GamePiece p)
+	{
+		//Check all valid directions
+		for (int x = -1; x < 1; x++)
+		{
+			for (int y = -1; y < 1; y++)
+			{
+				if(Mathf.Abs(x) + Mathf.Abs(y) == 1) //TODO If we remove this condition, we can check for the diagonal pieces too!
+				{
+					List<GamePiece> currentMatch = new List<GamePiece>();
+					CheckNextPiece(p, currentMatch, x, y);
+
+					if (currentMatch.Count >= minMatchCount)
+						matches.Add(currentMatch);
+				}
+			}
+		}
+	}
+
+	private void CheckNextPiece(GamePiece p, List<GamePiece> currentMatchList, int dirX, int dirY)
+	{
+		//Add the current piece to the list
+		currentMatchList.Add(p);
+
+		//Check if the next piece is valid
+		GamePiece nextPiece = null;
+		Vector2Int nextPos = new Vector2Int(p.boardPos.x + dirX, p.boardPos.y + dirY);
+
+		if ( nextPos.x >= 0 &&
+			 nextPos.y >= 0 &&
+			 nextPos.x < boardSize.x &&
+			 nextPos.y < boardSize.y)
+		{
+			nextPiece = currentPieces[nextPos.x, nextPos.y];
+		}
+
+		//If the next piece is valid and of the same type as the one that was passed, we call this method again,
+		//passing the next piece instead, until we can't find any more similar/valid pieces
+		if (nextPiece != null && nextPiece.typeID == p.typeID)
+		{
+			CheckNextPiece(nextPiece, currentMatchList, dirX, dirY);
+		}
 	}
 
 #if UNITY_EDITOR
@@ -221,6 +281,7 @@ public class Board : MonoBehaviour
 		if (!showDebugInfo)
 			return;
 
+		//TODO remove this?
 		//GUIStyle style = new GUIStyle();
 		//style.fontSize = 25;
 		//style.fontStyle = FontStyle.Bold;

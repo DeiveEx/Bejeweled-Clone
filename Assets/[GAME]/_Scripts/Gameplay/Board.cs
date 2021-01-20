@@ -21,7 +21,7 @@ public class Board : MonoBehaviour
 	[SerializeField] private int minMatchCount = 3;
 	public GamePiece[] availablePieces; //TODO change from prefabs to pools?
 
-	public System.Action<int> matchFound;
+	public System.Action<List<GamePiece>> matchFound;
 
 	private GamePiece[,] currentPieces;
 	private Vector2 pieceSize;
@@ -217,6 +217,7 @@ public class Board : MonoBehaviour
 		if (!CheckForMatches())
 		{
 			SwapPieces(p1, p2);
+			return;
 		}
 
 		Debug.Log("Matches found: " + matches.Count);
@@ -224,16 +225,15 @@ public class Board : MonoBehaviour
 		//Remove all matched pieces
 		foreach (var match in matches)
 		{
-			//If this match has a piece that was already removed, that means this match was part of another match, so we have a "cross match", which we can use to give bonus points
+			//If this match has a piece that was already removed, that means this match was part of another match,
+			//so we have a "cross match", which we can use to give bonus points or something
 			if (match.Any(p => currentPieces[p.boardPos.x, p.boardPos.y] == null))
 			{
-				Debug.Log($"CROSS Match found with {match.Count} pieces of ID: {match.First(x => x != null).typeID}");
-				matchFound?.Invoke(match.Count * 2); //Here we are giving double points for cross matches
+				matchFound?.Invoke(match);
 			}
 			else
 			{
-				Debug.Log($"Match found with {match.Count} pieces of ID: {match.First(x => x != null).typeID}");
-				matchFound?.Invoke(match.Count);
+				matchFound?.Invoke(match);
 			}
 
 			for (int i = 0; i < match.Count; i++)
@@ -241,6 +241,10 @@ public class Board : MonoBehaviour
 				RemovePiece(match[i]);
 			}
 		}
+
+		//Drop the remaining pieces down to fill the gaps left by the removed pieces
+
+		//Add new random pieces in the remaining empty spaces
 	}
 
 	private void RemovePiece(GamePiece p)
@@ -252,7 +256,6 @@ public class Board : MonoBehaviour
 
 	public bool CheckForMatches()
 	{
-		Debug.Log("> Checking for matches...");
 		matches.Clear();
 
 		for (int i = 0; i < boardSize.x; i++)

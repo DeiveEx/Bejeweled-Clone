@@ -662,6 +662,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   showDebugInfo: 0
+  seed: 2
   canvas: {fileID: 846428042}
   boardSize: {x: 8, y: 8}
   padding:
@@ -672,6 +673,7 @@ MonoBehaviour:
   spacing: {x: 10, y: 10}
   piecesParent: {fileID: 1499257121}
   minDragDistance: 10
+  minMatchCount: 3
   availablePieces:
   - {fileID: 5334081687116021757, guid: d316abaa6d37ce0489e1000dd58392f0, type: 3}
   - {fileID: 5334081687116021757, guid: 389b9bea52e33ad44b484c87e1ffc636, type: 3}

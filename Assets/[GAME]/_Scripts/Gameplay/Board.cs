@@ -23,7 +23,7 @@ public class Board : MonoBehaviour
 
 	public System.Action<List<GamePiece>> matchFound;
 
-	private GamePiece[,] currentPieces;
+	private GamePiece[,] grid;
 	private Vector2 pieceSize;
 	private GamePiece selectedPiece;
 	private Vector2 touchPos;
@@ -62,19 +62,19 @@ public class Board : MonoBehaviour
 #endif
 
 		//Remove all existing pieces
-		if (currentPieces != null)
+		if (grid != null)
 		{
 			for (int x = 0; x < boardSize.x; x++)
 			{
 				for (int y = 0; y < boardSize.y; y++)
 				{
-					if (currentPieces[x, y] != null)
-						Destroy(currentPieces[x, y].gameObject);
+					if (grid[x, y] != null)
+						Destroy(grid[x, y].gameObject);
 				}
 			}
 		}
 
-		currentPieces = new GamePiece[boardSize.x, boardSize.y];
+		grid = new GamePiece[boardSize.x, boardSize.y];
 		pieceSize = new Vector2() {
 			x = (piecesParent.rect.width - padding.left - padding.right) / boardSize.x,
 			y = (piecesParent.rect.height - padding.top - padding.bottom) / boardSize.y
@@ -106,7 +106,7 @@ public class Board : MonoBehaviour
 	{
 		p.rectTransform.anchoredPosition = piecesParent.rect.position + (pieceSize * .5f) + new Vector2((pieceSize.x * x) + padding.left, (pieceSize.y * y) + padding.bottom);
 		p.boardPos = new Vector2Int(x, y);
-		currentPieces[x, y] = p;
+		grid[x, y] = p;
 	}
 
 	public void SwapPieces(GamePiece p1, GamePiece p2)
@@ -193,7 +193,7 @@ public class Board : MonoBehaviour
 				targetPos.x < boardSize.x &&
 				targetPos.y < boardSize.y)
 			{
-				targetPiece = currentPieces[targetPos.x, targetPos.y];
+				targetPiece = grid[targetPos.x, targetPos.y];
 			}
 			
 			//If we found the piece we want to swap places, do the swap. Otherwise, deselect the piece
@@ -214,47 +214,79 @@ public class Board : MonoBehaviour
 		SwapPieces(p1, p2);
 
 		//If after the swipe a match was NOT found, we return the pieces to their original positions
-		if (!CheckForMatches())
+		if (CheckForMatches() == 0)
 		{
 			SwapPieces(p1, p2);
 			return;
 		}
 
-		Debug.Log("Matches found: " + matches.Count);
-
-		//Remove all matched pieces
-		foreach (var match in matches)
+		//If at least one match WAS found, we make a loop removing all matches, until there's no more matches to remove
+		do
 		{
-			//If this match has a piece that was already removed, that means this match was part of another match,
-			//so we have a "cross match", which we can use to give bonus points or something
-			if (match.Any(p => currentPieces[p.boardPos.x, p.boardPos.y] == null))
+			//Remove all matched pieces
+			foreach (var match in matches)
 			{
-				matchFound?.Invoke(match);
-			}
-			else
-			{
-				matchFound?.Invoke(match);
+				//If this match has a piece that was already removed, that means this match was part of another match,
+				//so we have a "cross match", which we can use to give bonus points or something
+				if (match.Any(p => grid[p.boardPos.x, p.boardPos.y] == null))
+				{
+					matchFound?.Invoke(match);
+				}
+				else
+				{
+					matchFound?.Invoke(match);
+				}
+
+				for (int i = 0; i < match.Count; i++)
+				{
+					RemovePiece(match[i]);
+				}
 			}
 
-			for (int i = 0; i < match.Count; i++)
+			//Drop the remaining pieces down to fill the gaps left by the removed pieces
+			for (int x = 0; x < boardSize.x; x++)
 			{
-				RemovePiece(match[i]);
+				for (int y = 1; y < boardSize.y; y++)
+				{
+					DropPiece(grid[x, y]);
+				}
+			}
+
+			//Add new random pieces in the remaining empty spaces
+			for (int x = 0; x < boardSize.x; x++)
+			{
+				for (int y = 1; y < boardSize.y; y++)
+				{
+					if (grid[x, y] == null)
+						CreatePieceAtPosition(x, y);
+				}
 			}
 		}
-
-		//Drop the remaining pieces down to fill the gaps left by the removed pieces
-
-		//Add new random pieces in the remaining empty spaces
+		while (CheckForMatches() > 0);
 	}
 
 	private void RemovePiece(GamePiece p)
 	{
-		currentPieces[p.boardPos.x, p.boardPos.y] = null;
-		//Destroy(p.gameObject);
-		p.GetComponentInChildren<Graphic>().color = new Color(1, 1, 1, .2f);
+		grid[p.boardPos.x, p.boardPos.y] = null;
+		Destroy(p.gameObject); //TODO return to pool
 	}
 
-	public bool CheckForMatches()
+	private void DropPiece(GamePiece p)
+	{
+		if(p != null && p.boardPos.y >= 1)//Pieces at the bottom (y = 0) don't need to be dropped
+		{
+			Vector2Int targetPos = new Vector2Int(p.boardPos.x, p.boardPos.y - 1);
+			
+			if(grid[targetPos.x, targetPos.y] == null)
+			{
+				grid[p.boardPos.x, p.boardPos.y] = null;
+				SetPieceGridPosition(p, targetPos.x, targetPos.y);
+				DropPiece(p); //Recursively call this method until the piece can't be dropped anymore
+			}
+		}
+	}
+
+	public int CheckForMatches()
 	{
 		matches.Clear();
 
@@ -262,12 +294,12 @@ public class Board : MonoBehaviour
 		{
 			for (int j = 0; j < boardSize.y; j++)
 			{
-				CheckSurroundingPieces(currentPieces[i, j]);
+				CheckSurroundingPieces(grid[i, j]);
 			}
 		}
 
 		//Did we find any macth?
-		return matches.Count > 0;
+		return matches.Count;
 	}
 
 	private void CheckSurroundingPieces(GamePiece p)
@@ -303,7 +335,7 @@ public class Board : MonoBehaviour
 			 nextPos.x < boardSize.x &&
 			 nextPos.y < boardSize.y)
 		{
-			nextPiece = currentPieces[nextPos.x, nextPos.y];
+			nextPiece = grid[nextPos.x, nextPos.y];
 		}
 
 		//If the next piece doesn't exist, we return
@@ -338,7 +370,7 @@ public class Board : MonoBehaviour
 		{
 			for (int y = 0; y < boardSize.y; y++)
 			{
-				GamePiece c = currentPieces[x, y];
+				GamePiece c = grid[x, y];
 				GUI.Box(new Rect(c.transform.position.x, Screen.height - c.transform.position.y, 60, 40), $"({c.boardPos.x}, {c.boardPos.y})");
 			}
 		}

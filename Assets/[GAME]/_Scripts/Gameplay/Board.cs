@@ -9,6 +9,7 @@ public class Board : MonoBehaviour
 {
 #if UNITY_EDITOR
 	[SerializeField] private bool showDebugInfo;
+	[SerializeField] private bool useSeed;
 	[SerializeField] private int seed;
 #endif
 
@@ -58,7 +59,8 @@ public class Board : MonoBehaviour
 	public void GenerateBoard()
 	{
 #if UNITY_EDITOR
-		Random.InitState(seed);
+		if(useSeed)
+			Random.InitState(seed);
 #endif
 
 		//Remove all existing pieces
@@ -85,14 +87,55 @@ public class Board : MonoBehaviour
 		{
 			for (int y = 0; y < boardSize.y; y++)
 			{
-				CreatePieceAtPosition(x, y);
+				int pieceID = 0;
+				int maxTries = 0;
+
+				//We don't want the starting board to already have matches, so we make sure that the current piece being created
+				//have a different ID than the pieces at (x - (minMatchCount - 1)) and (y - (minMatchCount - 1)) positions
+				//(since the board is create up then right, we can only check for pieces at the bottom and left)
+				do
+				{
+					maxTries++;
+					pieceID = Random.Range(0, availablePieces.Length);
+
+					//Pieces at the starting corner of the board doesn't need to be checked
+					if (x < minMatchCount - 1 && y < minMatchCount - 1)
+					{
+						break;
+					}
+
+					Vector2Int targetPos = new Vector2Int(x - (minMatchCount - 1), y - (minMatchCount - 1));
+
+					//Check the pieces at the fisr rows and colums
+					if (x < minMatchCount - 1 && grid[x, targetPos.y].typeID != pieceID)
+					{
+						break;
+					}
+
+					if (y < minMatchCount - 1 && grid[targetPos.x, y].typeID != pieceID)
+					{
+						break;
+					}
+
+					//Check any other piece that doesn't fit the above conditions
+					if (x >= minMatchCount - 1 && y >= minMatchCount - 1)
+					{
+						if (grid[x, targetPos.y].typeID != pieceID && grid[targetPos.x, y].typeID != pieceID)
+						{
+							break;
+						}
+					}
+				}
+				while (maxTries < 100); //For safety. Shouldn't never reach this many tries
+
+				CreatePieceAtPosition(availablePieces[pieceID], x, y);
 			}
 		}
 	}
 
-	private GamePiece CreatePieceAtPosition(int x, int y)
+	private GamePiece CreatePieceAtPosition(GamePiece prefab, int x, int y)
 	{
-		GamePiece piece = Instantiate(availablePieces[Random.Range(0, availablePieces.Length)], piecesParent);
+		GamePiece piece = Instantiate(prefab, piecesParent);
 		piece.rectTransform.anchorMin = piece.rectTransform.anchorMax = Vector2.one * .5f; //Centralizes the anchors
 		piece.rectTransform.sizeDelta = pieceSize - spacing;
 		SetPieceGridPosition(piece, x, y);
@@ -109,7 +152,7 @@ public class Board : MonoBehaviour
 		grid[x, y] = p;
 	}
 
-	public void SwapPieces(GamePiece p1, GamePiece p2)
+	private void SwapPieces(GamePiece p1, GamePiece p2)
 	{
 		//Check if we can swap these pieces by verifying their board positions. We can only swap adjacent pieces that are not in a diagonal
 		int dstX = Mathf.Abs(p1.boardPos.x - p2.boardPos.x);
@@ -258,7 +301,7 @@ public class Board : MonoBehaviour
 				for (int y = 1; y < boardSize.y; y++)
 				{
 					if (grid[x, y] == null)
-						CreatePieceAtPosition(x, y);
+						CreatePieceAtPosition(availablePieces[Random.Range(0, availablePieces.Length)], x, y);
 				}
 			}
 		}

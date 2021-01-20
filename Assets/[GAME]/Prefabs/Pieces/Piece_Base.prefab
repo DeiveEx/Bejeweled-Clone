@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4394797316851994935}
   - component: {fileID: 4394797316851994934}
   m_Layer: 5
-  m_Name: Cell_Base
+  m_Name: Piece_Base
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -50,6 +50,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   typeID: 0
+  boardPos: {x: 0, y: 0}
 --- !u!1 &4394797317596213575
 GameObject:
   m_ObjectHideFlags: 0
@@ -114,7 +115,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 9503d27e4b6dbbc48b272935839b00ac, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 2fa16a4843bfdaa4599a49c5e865134b, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -122,5 +123,5 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
-  m_UseSpriteMesh: 0
+  m_UseSpriteMesh: 1
   m_PixelsPerUnitMultiplier: 1

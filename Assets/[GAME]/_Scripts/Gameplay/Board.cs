@@ -9,6 +9,7 @@ public class Board : MonoBehaviour
 {
 #if UNITY_EDITOR
 	[SerializeField] private bool showDebugInfo;
+	[SerializeField] private int seed;
 #endif
 
 	[SerializeField] private CanvasScaler canvas;
@@ -18,8 +19,9 @@ public class Board : MonoBehaviour
 	[SerializeField] private RectTransform piecesParent;
 	[SerializeField] private float minDragDistance = 30;
 	[SerializeField] private int minMatchCount = 3;
-
 	public GamePiece[] availablePieces; //TODO change from prefabs to pools?
+
+	public System.Action<int> matchFound;
 
 	private GamePiece[,] currentPieces;
 	private Vector2 pieceSize;
@@ -38,12 +40,14 @@ public class Board : MonoBehaviour
 	private void Update()
 	{
 #if UNITY_EDITOR
+		//TODO remove this?
 		//Debug Commands
 		if (Keyboard.current[Key.Space].wasPressedThisFrame)
 		{
 
 		}
 
+		//TODO if we click on a piece and then click on nothing, the current piece is not deselected. Maybe to a check if we clicked outside the board, and so deselect the piece in that case?
 		//if (Mouse.current.leftButton.wasPressedThisFrame)
 		//{
 		//	Debug.Log(Mouse.current.position.ReadValue());
@@ -53,8 +57,12 @@ public class Board : MonoBehaviour
 
 	public void GenerateBoard()
 	{
+#if UNITY_EDITOR
+		Random.InitState(seed);
+#endif
+
 		//Remove all existing pieces
-		if(currentPieces != null)
+		if (currentPieces != null)
 		{
 			for (int x = 0; x < boardSize.x; x++)
 			{
@@ -88,8 +96,8 @@ public class Board : MonoBehaviour
 		piece.rectTransform.anchorMin = piece.rectTransform.anchorMax = Vector2.one * .5f; //Centralizes the anchors
 		piece.rectTransform.sizeDelta = pieceSize - spacing;
 		SetPieceGridPosition(piece, x, y);
-		piece.touchedPieceEvent += SelectPiece;
-		piece.releasedPieceEvent += ReleasePiece;
+		piece.touchedPieceEvent += PieceWasSelected;
+		piece.releasedPieceEvent += PieceWasReleased;
 
 		return piece;
 	}
@@ -118,7 +126,7 @@ public class Board : MonoBehaviour
 		selectedPiece = null;
 	}
 
-	private void SelectPiece(GamePiece c)
+	private void PieceWasSelected(GamePiece c)
 	{
 		//If we selected the same piece twice, we deselect it by clearing its reference
 		if (c == selectedPiece)
@@ -140,7 +148,7 @@ public class Board : MonoBehaviour
 		SwapPiecesAndCheckForMatches(selectedPiece, c);
 	}
 
-	private void ReleasePiece(GamePiece c)
+	private void PieceWasReleased(GamePiece c)
 	{
 		if (selectedPiece == null)
 			return;
@@ -211,12 +219,41 @@ public class Board : MonoBehaviour
 			SwapPieces(p1, p2);
 		}
 
+		Debug.Log("Matches found: " + matches.Count);
+
+		//Remove all matched pieces
+		foreach (var match in matches)
+		{
+			//If this match has a piece that was already removed, that means this match was part of another match, so we have a "cross match", which we can use to give bonus points
+			if (match.Any(p => currentPieces[p.boardPos.x, p.boardPos.y] == null))
+			{
+				Debug.Log($"CROSS Match found with {match.Count} pieces of ID: {match.First(x => x != null).typeID}");
+				matchFound?.Invoke(match.Count * 2); //Here we are giving double points for cross matches
+			}
+			else
+			{
+				Debug.Log($"Match found with {match.Count} pieces of ID: {match.First(x => x != null).typeID}");
+				matchFound?.Invoke(match.Count);
+			}
+
+			for (int i = 0; i < match.Count; i++)
+			{
+				RemovePiece(match[i]);
+			}
+		}
+	}
+
+	private void RemovePiece(GamePiece p)
+	{
+		currentPieces[p.boardPos.x, p.boardPos.y] = null;
+		//Destroy(p.gameObject);
+		p.GetComponentInChildren<Graphic>().color = new Color(1, 1, 1, .2f);
 	}
 
 	public bool CheckForMatches()
 	{
+		Debug.Log("> Checking for matches...");
 		matches.Clear();
-		Debug.Log(matches.Count);
 
 		for (int i = 0; i < boardSize.x; i++)
 		{
@@ -225,7 +262,6 @@ public class Board : MonoBehaviour
 				CheckSurroundingPieces(currentPieces[i, j]);
 			}
 		}
-		Debug.Log(matches.Count);
 
 		//Did we find any macth?
 		return matches.Count > 0;
@@ -234,9 +270,9 @@ public class Board : MonoBehaviour
 	private void CheckSurroundingPieces(GamePiece p)
 	{
 		//Check all valid directions
-		for (int x = -1; x < 1; x++)
+		for (int x = -1; x <= 1; x++)
 		{
-			for (int y = -1; y < 1; y++)
+			for (int y = -1; y <= 1; y++)
 			{
 				if(Mathf.Abs(x) + Mathf.Abs(y) == 1) //TODO If we remove this condition, we can check for the diagonal pieces too!
 				{
@@ -255,7 +291,7 @@ public class Board : MonoBehaviour
 		//Add the current piece to the list
 		currentMatchList.Add(p);
 
-		//Check if the next piece is valid
+		//Check if the next piece in the defined direction exists
 		GamePiece nextPiece = null;
 		Vector2Int nextPos = new Vector2Int(p.boardPos.x + dirX, p.boardPos.y + dirY);
 
@@ -267,9 +303,17 @@ public class Board : MonoBehaviour
 			nextPiece = currentPieces[nextPos.x, nextPos.y];
 		}
 
-		//If the next piece is valid and of the same type as the one that was passed, we call this method again,
-		//passing the next piece instead, until we can't find any more similar/valid pieces
-		if (nextPiece != null && nextPiece.typeID == p.typeID)
+		//If the next piece doesn't exist, we return
+		if (nextPiece == null)
+			return;
+
+		//Check if this piece and the next are part of any existing matches, which would mean we're looking at pieces we already looked and in the same direction
+		if (matches.Any(x => x.Contains(p) && x.Contains(nextPiece)))
+			return;
+
+		//If the next piece is of the same type as the one that was passed, we call this method again,
+		//but passing the next piece instead, until we can't find any more similar/valid pieces
+		if (nextPiece.typeID == p.typeID)
 		{
 			CheckNextPiece(nextPiece, currentMatchList, dirX, dirY);
 		}

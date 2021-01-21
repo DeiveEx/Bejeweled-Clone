@@ -32,7 +32,7 @@ public class Game_Manager : MonoBehaviour
 		minDragDistance = (Screen.width * minDragDistance) / canvas.referenceResolution.x; //TODO check if this is right
 
 		board.GenerateBoard();
-		board.GenerateBoard();
+		//TODO testar gerando o board 2 vezes depois que tudo estiver terminado
 	}
 
 	private void Update()
@@ -87,7 +87,7 @@ public class Game_Manager : MonoBehaviour
 		}
 
 		//If we selected a different piece than the current selcted one, we do a swap
-		SwapPiecesAndCheckForMatches(selectedPiece, p);
+		StartCoroutine(SwapPiecesAndCheckForMatches(selectedPiece, p));
 	}
 
 	private void PieceWasReleased(GamePiece p)
@@ -141,7 +141,7 @@ public class Game_Manager : MonoBehaviour
 			//If we found the piece we want to swap places, do the swap. Otherwise, deselect the piece
 			if (targetPiece != null)
 			{
-				SwapPiecesAndCheckForMatches(p, targetPiece);
+				StartCoroutine(SwapPiecesAndCheckForMatches(p, targetPiece));
 			}
 			else
 			{
@@ -151,18 +151,30 @@ public class Game_Manager : MonoBehaviour
 		}
 	}
 
-	private void SwapPiecesAndCheckForMatches(GamePiece p1, GamePiece p2)
+	private IEnumerator SwapPiecesAndCheckForMatches(GamePiece p1, GamePiece p2)
 	{
 		board.SwapPieces(p1, p2);
 
+		//Animate the visuals
+		p1.AnimateImagePositionOnGrid(p2.boardPos, p1.boardPos, board.swapDuration, board.swapCurve);
+		p2.AnimateImagePositionOnGrid(p1.boardPos, p2.boardPos, board.swapDuration, board.swapCurve);
+
 		//After a swap is executed (successfully or not), we clear the selected piece
 		selectedPiece = null;
+
+		yield return new WaitForSeconds(board.swapDuration);
 
 		//If after the swipe a match was NOT found, we return the pieces to their original positions
 		if (CheckForMatches() == 0)
 		{
 			board.SwapPieces(p1, p2);
-			return;
+
+			//Animate the visuals
+			p1.AnimateImagePositionOnGrid(p2.boardPos, p1.boardPos, board.swapDuration, board.swapCurve);
+			p2.AnimateImagePositionOnGrid(p1.boardPos, p2.boardPos, board.swapDuration, board.swapCurve);
+
+			yield return new WaitForSeconds(board.swapDuration);
+			yield break;
 		}
 
 		//If at least one match WAS found, we make a loop removing all matches, until there's no more matches to remove
@@ -175,10 +187,12 @@ public class Game_Manager : MonoBehaviour
 				//so we have a "cross match", which we can use to give bonus points or something
 				if (match.Any(p => board.grid[p.boardPos.x, p.boardPos.y] == null))
 				{
+					Debug.Log($"Cross Match! Adding {match.Count * 2} points");
 					matchFound?.Invoke(match);
 				}
 				else
 				{
+					Debug.Log($"Adding {match.Count} points");
 					matchFound?.Invoke(match);
 				}
 
@@ -188,12 +202,25 @@ public class Game_Manager : MonoBehaviour
 				}
 			}
 
+			yield return new WaitForSeconds(board.fallDuration);
+
 			//Drop the remaining pieces down to fill the gaps left by the removed pieces
 			for (int x = 0; x < board.boardSize.x; x++)
 			{
 				for (int y = 1; y < board.boardSize.y; y++)
 				{
-					board.DropPiece(board.grid[x, y]);
+					GamePiece p = board.grid[x, y];
+
+					if(p != null)
+					{
+						Vector2Int startPos = new Vector2Int(x, y);
+						board.DropPiece(p);
+
+						if (startPos != p.boardPos)
+						{
+							p.AnimateImagePositionOnGrid(startPos, p.boardPos, board.fallDuration, board.fallCurve);
+						}
+					}
 				}
 			}
 
@@ -206,11 +233,13 @@ public class Game_Manager : MonoBehaviour
 						board.CreatePieceAtPosition(board.availablePieces[Random.Range(0, board.availablePieces.Length)], x, y);
 				}
 			}
+
+			yield return new WaitForSeconds(board.fallDuration * 2);
 		}
 		while (CheckForMatches() > 0);
 	}
 
-	public int CheckForMatches()
+	private int CheckForMatches()
 	{
 		matches.Clear();
 

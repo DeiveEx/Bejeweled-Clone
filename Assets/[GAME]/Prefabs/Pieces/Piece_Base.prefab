@@ -50,7 +50,43 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   typeID: 0
+  image: {fileID: 4394797317596213573}
+  board: {fileID: 0}
   boardPos: {x: 0, y: 0}
+  animDuration: 0.5
+  animCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.0027160645
+      inSlope: 0.016831934
+      outSlope: 0.016831934
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 1
+    - serializedVersion: 3
+      time: 0.6595745
+      value: 1
+      inSlope: 3.6842752
+      outSlope: -0.74673945
+      tangentMode: 1
+      weightedMode: 0
+      inWeight: 0.043615073
+      outWeight: 0.17933129
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0.7662195
+      outSlope: 0.7662195
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.12234044
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &4394797317596213575
 GameObject:
   m_ObjectHideFlags: 0

@@ -17,12 +17,16 @@ public class Board : MonoBehaviour
 	public RectTransform piecesParent;
 	public GamePiece[] availablePieces; //TODO change from prefabs to pools?
 	public GamePiece[,] grid;
+	[HideInInspector] public Vector2 pieceSize;
+	public float swapDuration = 1;
+	public AnimationCurve swapCurve = AnimationCurve.Linear(0, 0, 1, 1);
+	public float fallDuration = 1;
+	public AnimationCurve fallCurve = AnimationCurve.Linear(0, 0, 1, 1);
 
 	public System.Action<GamePiece> pieceCreatedEvent;
 	public System.Action<GamePiece> pieceDestroyedEvent;
 
 	private Game_Manager manager;
-	private Vector2 pieceSize;
 
 	private void Awake()
 	{
@@ -112,6 +116,7 @@ public class Board : MonoBehaviour
 		piece.rectTransform.anchorMin = piece.rectTransform.anchorMax = Vector2.one * .5f; //Centralizes the anchors
 		piece.rectTransform.sizeDelta = pieceSize - spacing;
 		SetPieceGridPosition(piece, x, y);
+		piece.Initialize();
 
 		pieceCreatedEvent?.Invoke(piece);
 		return piece;
@@ -126,7 +131,7 @@ public class Board : MonoBehaviour
 
 	public void SetPieceGridPosition(GamePiece p, int x, int y)
 	{
-		p.rectTransform.anchoredPosition = piecesParent.rect.position + (pieceSize * .5f) + new Vector2((pieceSize.x * x) + padding.left, (pieceSize.y * y) + padding.bottom);
+		//p.rectTransform.anchoredPosition = ConvertGridPosToAnchoredPos(x, y);
 		p.boardPos = new Vector2Int(x, y);
 		grid[x, y] = p;
 	}
@@ -158,6 +163,11 @@ public class Board : MonoBehaviour
 				DropPiece(p); //Recursively call this method until the piece can't be dropped anymore
 			}
 		}
+	}
+
+	public Vector2 ConvertGridPosToAnchoredPos(int x, int y)
+	{
+		return piecesParent.rect.position + (pieceSize * .5f) + new Vector2((pieceSize.x * x) + padding.left, (pieceSize.y * y) + padding.bottom);
 	}
 
 #if UNITY_EDITOR

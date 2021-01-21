@@ -31,8 +31,11 @@ public class Game_Manager : MonoBehaviour
 		//Since the minDragDistance is based on pixels, different resolutions will result in different distances, so we recalculate the distance based on the current resolution
 		minDragDistance = (Screen.width * minDragDistance) / canvas.referenceResolution.x; //TODO check if this is right
 
-		board.GenerateBoard();
-		//TODO testar gerando o board 2 vezes depois que tudo estiver terminado
+		do
+		{
+			board.GenerateBoard();
+		}
+		while (CheckForDeadlock()); //If for some slim and depressing chance we generate a board with a deadlock, we regenarate it so the player won't be sad
 	}
 
 	private void Update()
@@ -80,7 +83,7 @@ public class Game_Manager : MonoBehaviour
 		//If we don't have any piece selected at the moment, we select it
 		if (selectedPiece == null)
 		{
-			selectedPiece = p;
+			selectedPiece = p; //TODO show some feedback that the piece is selected
 			//TODO change this to use the input system actions instead...?
 			touchPos = Mouse.current.position.ReadValue();
 			return;
@@ -237,6 +240,9 @@ public class Game_Manager : MonoBehaviour
 			yield return new WaitForSeconds(board.fallDuration * 2);
 		}
 		while (CheckForMatches() > 0);
+
+		//After the cascade effect ends, we check if we hit a deadlock
+		CheckForDeadlock(); //TODO Game over
 	}
 
 	private int CheckForMatches()
@@ -253,6 +259,32 @@ public class Game_Manager : MonoBehaviour
 
 		//Did we find any macth?
 		return matches.Count;
+	}
+
+	private bool CheckForDeadlock()
+	{
+		//Change every piece up and to the right and check if there's a match. If we do that for all pieces on the board
+		//and no match was found, that measn we hit a deadlock and there's no way to continue the game.
+		int matchesFound = 0;
+
+		for (int x = 0; x < board.boardSize.x - 1; x++)
+		{
+			for (int y = 0; y < board.boardSize.y - 1; y++)
+			{
+				//Swap Right
+				board.SwapPieces(board.grid[x, y], board.grid[x + 1, y]);
+				matchesFound += CheckForMatches();
+				board.SwapPieces(board.grid[x, y], board.grid[x + 1, y]); //Return to the original position
+
+				//Swap Up
+				board.SwapPieces(board.grid[x, y], board.grid[x, y + 1]);
+				matchesFound += CheckForMatches();
+				board.SwapPieces(board.grid[x, y], board.grid[x, y + 1]); //Return to the original position
+			}
+		}
+
+		//We hit a deadlock. Game over! D:
+		return matchesFound == 0;
 	}
 
 	private void CheckSurroundingPieces(GamePiece p)

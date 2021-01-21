@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -15,7 +16,7 @@ public class Board : MonoBehaviour
 	[SerializeField] private RectOffset padding;
     [SerializeField] private Vector2 spacing;
 	public RectTransform piecesParent;
-	public GamePiece[] availablePieces; //TODO change from prefabs to pools?
+	public ObjectPool_SO[] availablePieces;
 	public GamePiece[,] grid;
 	[HideInInspector] public Vector2 pieceSize;
 	public float swapDuration = 1;
@@ -33,6 +34,7 @@ public class Board : MonoBehaviour
 		manager = FindObjectOfType<Game_Manager>();
 	}
 
+	[ContextMenu("Regenerate Board")]
 	public void GenerateBoard()
 	{
 #if UNITY_EDITOR
@@ -110,9 +112,12 @@ public class Board : MonoBehaviour
 		}
 	}
 
-	public GamePiece CreatePieceAtPosition(GamePiece prefab, int x, int y)
+	public GamePiece CreatePieceAtPosition(ObjectPool_SO pool, int x, int y)
 	{
-		GamePiece piece = Instantiate(prefab, piecesParent);
+		//Get a piece from the passed pool
+		GamePiece piece = pool.GetPooledObject<GamePiece>();
+		piece.gameObject.SetActive(true);
+		piece.rectTransform.SetParent(piecesParent);
 		piece.rectTransform.anchorMin = piece.rectTransform.anchorMax = Vector2.one * .5f; //Centralizes the anchors
 		piece.rectTransform.sizeDelta = pieceSize - spacing;
 		SetPieceGridPosition(piece, x, y);
@@ -126,7 +131,9 @@ public class Board : MonoBehaviour
 	{
 		grid[p.boardPos.x, p.boardPos.y] = null;
 		pieceDestroyedEvent?.Invoke(p);
-		Destroy(p.gameObject); //TODO return to pool
+
+		//Return the piece to its pool
+		p.GetComponent<PoolableObject>().ReturnToPool();
 	}
 
 	public void SetPieceGridPosition(GamePiece p, int x, int y)

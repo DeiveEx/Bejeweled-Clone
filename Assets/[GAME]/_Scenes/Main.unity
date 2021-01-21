@@ -551,11 +551,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 846428044}
     m_Modifications:
-    - target: {fileID: 2685760470353395568, guid: 77f138fe7d8d9e542b8f567a463e0919,
-        type: 3}
-      propertyPath: fallDuration
-      value: 0.5
-      objectReference: {fileID: 0}
     - target: {fileID: 2685760470353395570, guid: 77f138fe7d8d9e542b8f567a463e0919,
         type: 3}
       propertyPath: m_Name
@@ -685,6 +680,11 @@ PrefabInstance:
       propertyPath: canvas
       value: 
       objectReference: {fileID: 846428042}
+    - target: {fileID: 7484043383499431637, guid: 8aaac1c89abb9e7498cf67f0365f1d1e,
+        type: 3}
+      propertyPath: delayBetweenSteps
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 7484043383499431638, guid: 8aaac1c89abb9e7498cf67f0365f1d1e,
         type: 3}
       propertyPath: m_LocalPosition.x

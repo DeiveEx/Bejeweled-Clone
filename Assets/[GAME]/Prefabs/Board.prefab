@@ -135,12 +135,12 @@ MonoBehaviour:
   spacing: {x: 10, y: 10}
   piecesParent: {fileID: 2685760470324096623}
   availablePieces:
-  - {fileID: 5334081687116021757, guid: d316abaa6d37ce0489e1000dd58392f0, type: 3}
-  - {fileID: 5334081687116021757, guid: 389b9bea52e33ad44b484c87e1ffc636, type: 3}
-  - {fileID: 5334081687116021757, guid: f736e739556338847a9c0b9e9db93fe1, type: 3}
-  - {fileID: 5334081687116021757, guid: 2beef2721be3d824582486970460c019, type: 3}
-  - {fileID: 5334081687116021757, guid: 5dbf1bc5deaf1be4fa9632079cc82e81, type: 3}
-  pieceSize: {x: 0, y: 0}
+  - {fileID: 11400000, guid: bbed1c7675b15e246be00fdfe660f23b, type: 2}
+  - {fileID: 11400000, guid: 8619fd6abf972884cabe9fa41f447cd1, type: 2}
+  - {fileID: 11400000, guid: 58d57ddb5d04e1149b16157284fca4a4, type: 2}
+  - {fileID: 11400000, guid: 008d2aa5f4103e64490eee7e2fc067ae, type: 2}
+  - {fileID: 11400000, guid: 1991cab0bc5822e439a7190d051864ca, type: 2}
+  pieceSize: {x: 120.04001, y: 120}
   swapDuration: 0.25
   swapCurve:
     serializedVersion: 2
@@ -166,7 +166,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  fallDuration: 1
+  fallDuration: 0.5
   fallCurve:
     serializedVersion: 2
     m_Curve:
@@ -200,28 +200,4 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  jumpDuration: 0.2
-  jumpCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0.7806622
-      outSlope: 0.7806622
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0.05319149
-    - serializedVersion: 3
-      time: 1
-      value: 0
-      inSlope: -0.7682048
-      outSlope: -0.7682048
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.0625
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
+  testPool: {fileID: 11400000, guid: bbed1c7675b15e246be00fdfe660f23b, type: 2}

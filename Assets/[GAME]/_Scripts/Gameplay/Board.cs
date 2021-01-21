@@ -29,6 +29,7 @@ public class Board : MonoBehaviour
 
 	private Game_Manager manager;
 
+
 	private void Awake()
 	{
 		manager = FindObjectOfType<Game_Manager>();
@@ -53,6 +54,11 @@ public class Board : MonoBehaviour
 						RemovePiece(grid[x, y]);
 				}
 			}
+		}
+
+		for (int i = 0; i < availablePieces.Length; i++)
+		{
+			availablePieces[i].Initialize();
 		}
 
 		grid = new GamePiece[boardSize.x, boardSize.y];
@@ -114,12 +120,11 @@ public class Board : MonoBehaviour
 
 	public GamePiece CreatePieceAtPosition(ObjectPool_SO pool, int x, int y)
 	{
-		//Get a piece from the passed pool
 		GamePiece piece = pool.GetPooledObject<GamePiece>();
-		piece.gameObject.SetActive(true);
 		piece.rectTransform.SetParent(piecesParent);
 		piece.rectTransform.anchorMin = piece.rectTransform.anchorMax = Vector2.one * .5f; //Centralizes the anchors
 		piece.rectTransform.sizeDelta = pieceSize - spacing;
+		piece.rectTransform.localScale = Vector3.one;
 		SetPieceGridPosition(piece, x, y);
 		piece.Initialize();
 
@@ -132,13 +137,11 @@ public class Board : MonoBehaviour
 		grid[p.boardPos.x, p.boardPos.y] = null;
 		pieceDestroyedEvent?.Invoke(p);
 
-		//Return the piece to its pool
 		p.GetComponent<PoolableObject>().ReturnToPool();
 	}
 
 	public void SetPieceGridPosition(GamePiece p, int x, int y)
 	{
-		//p.rectTransform.anchoredPosition = ConvertGridPosToAnchoredPos(x, y);
 		p.boardPos = new Vector2Int(x, y);
 		grid[x, y] = p;
 	}

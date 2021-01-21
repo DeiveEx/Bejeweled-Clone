@@ -6,13 +6,27 @@ using UnityEngine;
 public class ObjectPool_SO : ScriptableObject
 {
     public PoolableObject prefab;
+	[SerializeField] private int initialAmount;
 
     private Queue<PoolableObject> pool = new Queue<PoolableObject>();
 	private Transform poolParent;
 
+	public void Initialize()
+	{
+		if (pool.Count >= initialAmount)
+			return;
+
+		for (int i = 0; i < initialAmount; i++)
+		{
+			PoolableObject obj = CreateObject();
+			ReturnToPool(obj);
+		}
+	}
+
     public PoolableObject GetPooledObject()
 	{
-		PoolableObject obj = pool.Count > 0 ? pool.Dequeue() : CreateObject();
+		PoolableObject obj = pool.Count > 0 && !pool.Peek().gameObject.activeSelf ? pool.Dequeue() : CreateObject();
+		obj.gameObject.SetActive(true);
 		return obj;
 	}
 
@@ -38,9 +52,9 @@ public class ObjectPool_SO : ScriptableObject
 
     public void ReturnToPool(PoolableObject obj)
 	{
-		pool.Enqueue(obj);
 		obj.transform.SetParent(poolParent);
 		obj.gameObject.SetActive(false);
+		pool.Enqueue(obj);
 	}
 
 	private void OnDestroy()

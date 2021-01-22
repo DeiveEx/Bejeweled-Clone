@@ -54,18 +54,9 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4394797317596213573, guid: d9c9106cd821ddb42a638294214fc3ef,
         type: 3}
-      propertyPath: m_Color.r
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4394797317596213573, guid: d9c9106cd821ddb42a638294214fc3ef,
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: dae414074aae54d468aa8d276d3c6c20,
         type: 3}
-      propertyPath: m_Color.g
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4394797317596213573, guid: d9c9106cd821ddb42a638294214fc3ef,
-        type: 3}
-      propertyPath: m_Color.b
-      value: 0
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d9c9106cd821ddb42a638294214fc3ef, type: 3}

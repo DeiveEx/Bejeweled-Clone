@@ -16,14 +16,16 @@ public class Game_Manager : MonoBehaviour
 	[SerializeField] private CanvasScaler canvas;
 	[SerializeField] private float minDragDistance = 30;
 	public int minMatchCount = 3;
+	public GameState currentState { get; private set; }
 
+	public System.Action<GamePiece> pieceSelectedEvent;
+	public System.Action<GamePiece> pieceDeselectedEvent;
 	public System.Action<List<GamePiece>> matchFound;
 
 	private Board board;
 	private GamePiece selectedPiece;
 	private Vector2 touchPos;
 	private List<List<GamePiece>> matches = new List<List<GamePiece>>();
-	private GameState currentState;
 
 	private void Awake()
 	{
@@ -54,6 +56,7 @@ public class Game_Manager : MonoBehaviour
 		{
 			if (selectedPiece != null && !RectTransformUtility.RectangleContainsScreenPoint(board.piecesParent, Mouse.current.position.ReadValue()))
 			{
+				pieceDeselectedEvent?.Invoke(selectedPiece);
 				selectedPiece = null;
 			}
 		}
@@ -89,20 +92,22 @@ public class Game_Manager : MonoBehaviour
 		if (p == selectedPiece)
 		{
 			selectedPiece = null;
+			pieceDeselectedEvent?.Invoke(p);
 			return;
 		}
 
 		//If we don't have any piece selected at the moment, we select it
 		if (selectedPiece == null)
 		{
-			selectedPiece = p; //TODO show some feedback that the piece is selected
-			//TODO change this to use the input system actions instead...?
+			selectedPiece = p;
 			touchPos = Mouse.current.position.ReadValue();
+			pieceSelectedEvent?.Invoke(p);
 			return;
 		}
 
 		//If we selected a different piece than the current selcted one, we do a swap
 		StartCoroutine(SwapPiecesAndCheckForMatches(selectedPiece, p));
+		pieceDeselectedEvent?.Invoke(p);
 	}
 
 	private void PieceWasReleased(GamePiece p)
@@ -166,6 +171,8 @@ public class Game_Manager : MonoBehaviour
 				selectedPiece = null;
 				Debug.Log("Stuck"); //TODO maybe do a "stuck" animation when trying to swap to outside the board?
 			}
+
+			pieceDeselectedEvent?.Invoke(p);
 		}
 	}
 
@@ -173,11 +180,12 @@ public class Game_Manager : MonoBehaviour
 	{
 		currentState = GameState.wait;
 
-		board.SwapPieces(p1, p2);
-
-		//Animate the visuals
-		p1.AnimatePositionOnGrid(p2.boardPos, p1.boardPos, board.swapDuration, board.swapCurve);
-		p2.AnimatePositionOnGrid(p1.boardPos, p2.boardPos, board.swapDuration, board.swapCurve);
+		if(board.SwapPieces(p1, p2))
+		{
+			//Animate the visuals
+			p1.AnimatePositionOnGrid(p2.boardPos, p1.boardPos, board.swapDuration, board.swapCurve);
+			p2.AnimatePositionOnGrid(p1.boardPos, p2.boardPos, board.swapDuration, board.swapCurve);
+		}
 
 		//After a swap is executed (successfully or not), we clear the selected piece
 		selectedPiece = null;
@@ -187,11 +195,12 @@ public class Game_Manager : MonoBehaviour
 		//If after the swipe a match was NOT found, we return the pieces to their original positions
 		if (CheckForMatches() == 0)
 		{
-			board.SwapPieces(p1, p2);
-
-			//Animate the visuals
-			p1.AnimatePositionOnGrid(p2.boardPos, p1.boardPos, board.swapDuration, board.swapCurve);
-			p2.AnimatePositionOnGrid(p1.boardPos, p2.boardPos, board.swapDuration, board.swapCurve);
+			if(board.SwapPieces(p1, p2))
+			{
+				//Animate the visuals
+				p1.AnimatePositionOnGrid(p2.boardPos, p1.boardPos, board.swapDuration, board.swapCurve);
+				p2.AnimatePositionOnGrid(p1.boardPos, p2.boardPos, board.swapDuration, board.swapCurve);
+			}
 
 			yield return new WaitForSeconds(board.swapDuration);
 			currentState = GameState.play;

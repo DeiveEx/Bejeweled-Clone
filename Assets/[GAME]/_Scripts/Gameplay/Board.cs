@@ -24,6 +24,7 @@ public class Board : MonoBehaviour
 	public float fallDuration = 1;
 	public AnimationCurve fallCurve = AnimationCurve.Linear(0, 0, 1, 1);
 
+	public System.Action boardReadyEvent;
 	public System.Action<GamePiece> pieceCreatedEvent;
 	public System.Action<GamePiece> pieceDestroyedEvent;
 
@@ -116,6 +117,8 @@ public class Board : MonoBehaviour
 				CreatePieceAtPosition(availablePieces[pieceID], x, y);
 			}
 		}
+
+		boardReadyEvent?.Invoke();
 	}
 
 	public GamePiece CreatePieceAtPosition(ObjectPool_SO pool, int x, int y)
@@ -146,7 +149,7 @@ public class Board : MonoBehaviour
 		grid[x, y] = p;
 	}
 
-	public void SwapPieces(GamePiece p1, GamePiece p2)
+	public bool SwapPieces(GamePiece p1, GamePiece p2)
 	{
 		//Check if we can swap these pieces by verifying their board positions. We can only swap adjacent pieces that are not in a diagonal
 		int dstX = Mathf.Abs(p1.boardPos.x - p2.boardPos.x);
@@ -157,7 +160,10 @@ public class Board : MonoBehaviour
 			Vector2Int pos1 = p1.boardPos;
 			SetPieceGridPosition(p1, p2.boardPos.x, p2.boardPos.y);
 			SetPieceGridPosition(p2, pos1.x, pos1.y);
+			return true;
 		}
+
+		return false;
 	}
 
 	public void DropPiece(GamePiece p)
@@ -186,7 +192,6 @@ public class Board : MonoBehaviour
 		if (!showDebugInfo)
 			return;
 
-		//TODO remove this?
 		GUIStyle style = new GUIStyle();
 		style.fontSize = 25;
 		style.fontStyle = FontStyle.Bold;

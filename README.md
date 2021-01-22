@@ -2,7 +2,7 @@
 Um clone do jogo Bejeweled feito como teste para uma vaga de Desenvolvedor Unity na Gazeus Games
 
 
-## Pakcages used:
+## Packages used:
 - Text Mesh Pro
 - Input System
 

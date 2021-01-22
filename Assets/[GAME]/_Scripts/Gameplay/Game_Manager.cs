@@ -17,10 +17,14 @@ public class Game_Manager : MonoBehaviour
 	[SerializeField] private float minDragDistance = 30;
 	public int minMatchCount = 3;
 	public GameState currentState { get; private set; }
+	public int points { get; private set; }
 
 	public System.Action<GamePiece> pieceSelectedEvent;
 	public System.Action<GamePiece> pieceDeselectedEvent;
-	public System.Action<List<GamePiece>> matchFound;
+	public System.Action<List<GamePiece>, int> matchFoundEvent;
+	public System.Action<List<GamePiece>, int> crossMatchFoundEvent;
+	public System.Action gameStartEvent;
+	public System.Action gameOverEvent;
 
 	private Board board;
 	private GamePiece selectedPiece;
@@ -35,7 +39,14 @@ public class Game_Manager : MonoBehaviour
 		board.pieceDestroyedEvent += OnPieceDestroyed;
 	}
 
-	private void Start()
+	private IEnumerator Start()
+	{
+		yield return null; //Wait a frame because of the way Unity calculates UI
+
+		StartGame();
+	}
+
+	public void StartGame()
 	{
 		//Since the minDragDistance is based on pixels, different resolutions will result in different distances, so we recalculate the distance based on the current resolution
 		minDragDistance = (Screen.width * minDragDistance) / canvas.referenceResolution.x; //TODO check if this is right
@@ -46,7 +57,9 @@ public class Game_Manager : MonoBehaviour
 		}
 		while (CheckForDeadlock()); //If for some slim and depressing chance we generate a board with a deadlock, we regenarate it so the player won't be sad
 
+		points = 0;
 		currentState = GameState.play;
+		gameStartEvent?.Invoke();
 	}
 
 	private void Update()
@@ -215,16 +228,19 @@ public class Game_Manager : MonoBehaviour
 			{
 				//If this match has a piece that was already removed, that means this match was part of another match,
 				//so we have a "cross match", which we can use to give bonus points or something
+				int pointsToAdd = ((match.Count - minMatchCount) + 1) * 10;
+
 				if (match.Any(p => board.grid[p.boardPos.x, p.boardPos.y] == null))
 				{
-					//Debug.Log($"Cross Match! Adding {match.Count * 2} points"); //TODO remove this
-					matchFound?.Invoke(match);
+					pointsToAdd *= 2; //We get double points for cross matches here
+					crossMatchFoundEvent?.Invoke(match, pointsToAdd);
 				}
 				else
 				{
-					//Debug.Log($"Adding {match.Count} points"); //TODO remove this
-					matchFound?.Invoke(match);
+					matchFoundEvent?.Invoke(match, pointsToAdd);
 				}
+
+				points += pointsToAdd;
 
 				for (int i = 0; i < match.Count; i++)
 				{
@@ -271,9 +287,15 @@ public class Game_Manager : MonoBehaviour
 		while (CheckForMatches() > 0);
 
 		//After the cascade effect ends, we check if we hit a deadlock
-		CheckForDeadlock(); //TODO Game over
+		if (CheckForDeadlock())
+		{
+			gameOverEvent?.Invoke();
+		}
+		else
+		{
+			currentState = GameState.play;
 
-		currentState = GameState.play;
+		}
 	}
 
 	private int CheckForMatches()
@@ -314,7 +336,7 @@ public class Game_Manager : MonoBehaviour
 			}
 		}
 
-		//We hit a deadlock. Game over! D:
+		//We hit a deadlock if matches == 0. Game over! D:
 		return matchesFound == 0;
 	}
 

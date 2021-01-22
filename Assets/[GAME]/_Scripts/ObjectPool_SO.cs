@@ -30,7 +30,7 @@ public class ObjectPool_SO : ScriptableObject
 		return obj;
 	}
 
-	public T GetPooledObject<T>() where T : MonoBehaviour
+	public T GetPooledObject<T>() where T : Component
 	{
 		return GetPooledObject().GetComponent<T>();
 	}

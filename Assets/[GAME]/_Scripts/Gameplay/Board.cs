@@ -23,6 +23,7 @@ public class Board : MonoBehaviour
 	public AnimationCurve swapCurve = AnimationCurve.Linear(0, 0, 1, 1);
 	public float fallDuration = 1;
 	public AnimationCurve fallCurve = AnimationCurve.Linear(0, 0, 1, 1);
+	[SerializeField] private ObjectPool_SO destroyEffectPool;
 
 	public System.Action boardReadyEvent;
 	public System.Action<GamePiece> pieceCreatedEvent;
@@ -137,6 +138,15 @@ public class Board : MonoBehaviour
 
 	public void RemovePiece(GamePiece p)
 	{
+		RectTransform fx = destroyEffectPool.GetPooledObject<RectTransform>();
+		fx.SetParent(piecesParent);
+		fx.anchorMin = fx.anchorMax = Vector2.one * .5f; //Centralizes the anchors
+		fx.sizeDelta = pieceSize - spacing;
+		fx.localScale = Vector3.one;
+		fx.position = p.transform.position;
+		transform.SetParent(transform);
+		fx.SetAsLastSibling();
+
 		grid[p.boardPos.x, p.boardPos.y] = null;
 		pieceDestroyedEvent?.Invoke(p);
 

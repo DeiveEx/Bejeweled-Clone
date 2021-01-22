@@ -53,6 +53,7 @@ MonoBehaviour:
   typeID: 0
   image: {fileID: 4394797317596213573}
   boardPos: {x: 0, y: 0}
+  destroyEffectPool: {fileID: 11400000, guid: abb98dd66e4c31541922f9f92ad8a39b, type: 2}
 --- !u!114 &1748552490776278901
 MonoBehaviour:
   m_ObjectHideFlags: 0

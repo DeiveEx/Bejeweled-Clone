@@ -13,3 +13,4 @@ MonoBehaviour:
   m_Name: Piece_Pool_1
   m_EditorClassIdentifier: 
   prefab: {fileID: 7980124352301685182, guid: 389b9bea52e33ad44b484c87e1ffc636, type: 3}
+  initialAmount: 10

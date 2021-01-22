@@ -9,7 +9,7 @@ public class GamePiece : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     public int typeID;
 	public RectTransform rectTransform { get; private set; }
 	public Image image;
-	[HideInInspector] public Vector2Int boardPos;
+	public Vector2Int boardPos;
 
 	public event System.Action<GamePiece> touchedPieceEvent;
 	public event System.Action<GamePiece> releasedPieceEvent;
@@ -20,12 +20,6 @@ public class GamePiece : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 	{
 		rectTransform = GetComponent<RectTransform>();
 		board = FindObjectOfType<Board>();
-	}
-
-	private void OnDestroy()
-	{
-		if(image != null)
-			Destroy(image.gameObject);
 	}
 
 	public void OnPointerDown(PointerEventData eventData)
@@ -42,21 +36,21 @@ public class GamePiece : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 	{
 		Vector2Int start = new Vector2Int(boardPos.x, Mathf.FloorToInt(boardPos.y + (board.boardSize.y * 1.25f)));
 		Vector2Int end = boardPos;
-		AnimateImagePositionOnGrid(start, end, board.fallDuration, board.fallCurve);
+		AnimatePositionOnGrid(start, end, board.fallDuration, board.fallCurve);
 	}
 
-	public void AnimateImagePosition(Vector2 start, Vector2 end, float duration, AnimationCurve curve)
+	public void AnimatePosition(Vector2 start, Vector2 end, float duration, AnimationCurve curve)
 	{
 		StopAllCoroutines();
-		StartCoroutine(AnimateImagePosition_Routine(start, end, duration, curve));
+		StartCoroutine(AnimatePosition_Routine(start, end, duration, curve));
 	}
 
-	public void AnimateImagePositionOnGrid(Vector2Int start, Vector2Int end, float duration, AnimationCurve curve)
+	public void AnimatePositionOnGrid(Vector2Int start, Vector2Int end, float duration, AnimationCurve curve)
 	{
-		AnimateImagePosition(board.ConvertGridPosToAnchoredPos(start.x, start.y), board.ConvertGridPosToAnchoredPos(end.x, end.y), duration, curve);
+		AnimatePosition(board.ConvertGridPosToAnchoredPos(start.x, start.y), board.ConvertGridPosToAnchoredPos(end.x, end.y), duration, curve);
 	}
 
-	private IEnumerator AnimateImagePosition_Routine(Vector2 start, Vector2 end, float duration, AnimationCurve curve)
+	private IEnumerator AnimatePosition_Routine(Vector2 start, Vector2 end, float duration, AnimationCurve curve)
 	{
 		float timePassed = 0;
 

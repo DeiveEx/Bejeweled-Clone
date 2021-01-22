@@ -5,6 +5,12 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
+public enum GameState
+{
+	wait,
+	play
+}
+
 public class Game_Manager : MonoBehaviour
 {
 	[SerializeField] private CanvasScaler canvas;
@@ -17,6 +23,7 @@ public class Game_Manager : MonoBehaviour
 	private GamePiece selectedPiece;
 	private Vector2 touchPos;
 	private List<List<GamePiece>> matches = new List<List<GamePiece>>();
+	private GameState currentState;
 
 	private void Awake()
 	{
@@ -36,6 +43,8 @@ public class Game_Manager : MonoBehaviour
 			board.GenerateBoard();
 		}
 		while (CheckForDeadlock()); //If for some slim and depressing chance we generate a board with a deadlock, we regenarate it so the player won't be sad
+
+		currentState = GameState.play;
 	}
 
 	private void Update()
@@ -73,6 +82,9 @@ public class Game_Manager : MonoBehaviour
 
 	private void PieceWasSelected(GamePiece p)
 	{
+		if (currentState == GameState.wait)
+			return;
+
 		//If we selected the same piece twice, we deselect it by clearing its reference
 		if (p == selectedPiece)
 		{
@@ -95,6 +107,9 @@ public class Game_Manager : MonoBehaviour
 
 	private void PieceWasReleased(GamePiece p)
 	{
+		if (currentState == GameState.wait)
+			return;
+
 		if (selectedPiece == null)
 			return;
 
@@ -156,11 +171,13 @@ public class Game_Manager : MonoBehaviour
 
 	private IEnumerator SwapPiecesAndCheckForMatches(GamePiece p1, GamePiece p2)
 	{
+		currentState = GameState.wait;
+
 		board.SwapPieces(p1, p2);
 
 		//Animate the visuals
-		p1.AnimateImagePositionOnGrid(p2.boardPos, p1.boardPos, board.swapDuration, board.swapCurve);
-		p2.AnimateImagePositionOnGrid(p1.boardPos, p2.boardPos, board.swapDuration, board.swapCurve);
+		p1.AnimatePositionOnGrid(p2.boardPos, p1.boardPos, board.swapDuration, board.swapCurve);
+		p2.AnimatePositionOnGrid(p1.boardPos, p2.boardPos, board.swapDuration, board.swapCurve);
 
 		//After a swap is executed (successfully or not), we clear the selected piece
 		selectedPiece = null;
@@ -173,10 +190,11 @@ public class Game_Manager : MonoBehaviour
 			board.SwapPieces(p1, p2);
 
 			//Animate the visuals
-			p1.AnimateImagePositionOnGrid(p2.boardPos, p1.boardPos, board.swapDuration, board.swapCurve);
-			p2.AnimateImagePositionOnGrid(p1.boardPos, p2.boardPos, board.swapDuration, board.swapCurve);
+			p1.AnimatePositionOnGrid(p2.boardPos, p1.boardPos, board.swapDuration, board.swapCurve);
+			p2.AnimatePositionOnGrid(p1.boardPos, p2.boardPos, board.swapDuration, board.swapCurve);
 
 			yield return new WaitForSeconds(board.swapDuration);
+			currentState = GameState.play;
 			yield break;
 		}
 
@@ -190,12 +208,12 @@ public class Game_Manager : MonoBehaviour
 				//so we have a "cross match", which we can use to give bonus points or something
 				if (match.Any(p => board.grid[p.boardPos.x, p.boardPos.y] == null))
 				{
-					Debug.Log($"Cross Match! Adding {match.Count * 2} points");
+					//Debug.Log($"Cross Match! Adding {match.Count * 2} points"); //TODO remove this
 					matchFound?.Invoke(match);
 				}
 				else
 				{
-					Debug.Log($"Adding {match.Count} points");
+					//Debug.Log($"Adding {match.Count} points"); //TODO remove this
 					matchFound?.Invoke(match);
 				}
 
@@ -221,11 +239,13 @@ public class Game_Manager : MonoBehaviour
 
 						if (startPos != p.boardPos)
 						{
-							p.AnimateImagePositionOnGrid(startPos, p.boardPos, board.fallDuration, board.fallCurve);
+							p.AnimatePositionOnGrid(startPos, p.boardPos, board.fallDuration, board.fallCurve);
 						}
 					}
 				}
 			}
+
+			yield return null;
 
 			//Add new random pieces in the remaining empty spaces
 			for (int x = 0; x < board.boardSize.x; x++)
@@ -243,6 +263,8 @@ public class Game_Manager : MonoBehaviour
 
 		//After the cascade effect ends, we check if we hit a deadlock
 		CheckForDeadlock(); //TODO Game over
+
+		currentState = GameState.play;
 	}
 
 	private int CheckForMatches()

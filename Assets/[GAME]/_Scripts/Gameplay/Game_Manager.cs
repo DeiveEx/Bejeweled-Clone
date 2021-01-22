@@ -23,6 +23,7 @@ public class Game_Manager : MonoBehaviour
 	public System.Action<List<GamePiece>> matchFound;
 
 	private Board board;
+	private Camera cam;
 	private GamePiece selectedPiece;
 	private Vector2 touchPos;
 	private List<List<GamePiece>> matches = new List<List<GamePiece>>();
@@ -30,9 +31,7 @@ public class Game_Manager : MonoBehaviour
 	private void Awake()
 	{
 		board = FindObjectOfType<Board>();
-
-		board.pieceCreatedEvent += OnPieceCreated;
-		board.pieceDestroyedEvent += OnPieceDestroyed;
+		cam = Camera.main;
 	}
 
 	private void Start()
@@ -51,36 +50,41 @@ public class Game_Manager : MonoBehaviour
 
 	private void Update()
 	{
-		//If we have a piece selected and then click outside the board, deselect the piece
-		if (Mouse.current.leftButton.wasPressedThisFrame)
+		////If we have a piece selected and then click outside the board, deselect the piece
+		//if (Mouse.current.leftButton.wasPressedThisFrame)
+		//{
+		//	//if (selectedPiece != null && !RectTransformUtility.RectangleContainsScreenPoint(board.piecesParent, Mouse.current.position.ReadValue()))
+		//	//{
+		//	//	pieceDeselectedEvent?.Invoke(selectedPiece);
+		//	//	selectedPiece = null;
+		//	//}
+		//}
+	}
+
+	private void OnClick(InputValue value)
+	{
+		if (value.Get<float>() > 0)
 		{
-			if (selectedPiece != null && !RectTransformUtility.RectangleContainsScreenPoint(board.piecesParent, Mouse.current.position.ReadValue()))
+			//if (selectedPiece != null && !RectTransformUtility.RectangleContainsScreenPoint(board.piecesParent, Mouse.current.position.ReadValue()))
+			//{
+			//	pieceDeselectedEvent?.Invoke(selectedPiece);
+			//	selectedPiece = null;
+			//}
+
+			Rect boardRect = new Rect(
+				board.piecesParent.transform.position.x,
+				board.piecesParent.transform.position.x,
+				board.boardSize.x,
+				board.boardSize.y
+			);
+
+			//If we have a piece selected and then click outside the board, deselect the piece
+			if (selectedPiece != null && !boardRect.Contains(cam.ScreenToWorldPoint(Mouse.current.position.ReadValue())))
 			{
 				pieceDeselectedEvent?.Invoke(selectedPiece);
 				selectedPiece = null;
 			}
 		}
-	}
-
-	private void OnDestroy()
-	{
-		if (board == null)
-			return;
-
-		board.pieceCreatedEvent -= OnPieceCreated;
-		board.pieceDestroyedEvent -= OnPieceDestroyed;
-	}
-
-	private void OnPieceCreated(GamePiece p)
-	{
-		p.touchedPieceEvent += PieceWasSelected;
-		p.releasedPieceEvent += PieceWasReleased;
-	}
-
-	private void OnPieceDestroyed(GamePiece p)
-	{
-		p.touchedPieceEvent -= PieceWasSelected;
-		p.releasedPieceEvent -= PieceWasReleased;
 	}
 
 	private void PieceWasSelected(GamePiece p)

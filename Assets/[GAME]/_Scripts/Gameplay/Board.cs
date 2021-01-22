@@ -15,7 +15,7 @@ public class Board : MonoBehaviour
 	public Vector2Int boardSize;
 	[SerializeField] private RectOffset padding;
     [SerializeField] private Vector2 spacing;
-	public RectTransform piecesParent;
+	public SpriteRenderer piecesParent;
 	public ObjectPool_SO[] availablePieces;
 	public GamePiece[,] grid;
 	[HideInInspector] public Vector2 pieceSize;
@@ -63,9 +63,11 @@ public class Board : MonoBehaviour
 		}
 
 		grid = new GamePiece[boardSize.x, boardSize.y];
+		piecesParent.size = boardSize;
+		piecesParent.transform.position = new Vector3(boardSize.x, boardSize.y, 0) / -2f;
 		pieceSize = new Vector2() {
-			x = (piecesParent.rect.width - padding.left - padding.right) / boardSize.x,
-			y = (piecesParent.rect.height - padding.top - padding.bottom) / boardSize.y
+			x = (piecesParent.size.x - padding.left - padding.right) / boardSize.x,
+			y = (piecesParent.size.y - padding.top - padding.bottom) / boardSize.y
 		};
 
 		//Create new pieces and position them into the grid
@@ -124,10 +126,8 @@ public class Board : MonoBehaviour
 	public GamePiece CreatePieceAtPosition(ObjectPool_SO pool, int x, int y)
 	{
 		GamePiece piece = pool.GetPooledObject<GamePiece>();
-		piece.rectTransform.SetParent(piecesParent);
-		piece.rectTransform.anchorMin = piece.rectTransform.anchorMax = Vector2.one * .5f; //Centralizes the anchors
-		piece.rectTransform.sizeDelta = pieceSize - spacing;
-		piece.rectTransform.localScale = Vector3.one;
+		piece.myTransform.SetParent(piecesParent.transform);
+		piece.myTransform.localScale = Vector3.one;
 		SetPieceGridPosition(piece, x, y);
 		piece.Initialize();
 
@@ -181,9 +181,9 @@ public class Board : MonoBehaviour
 		}
 	}
 
-	public Vector2 ConvertGridPosToAnchoredPos(int x, int y)
+	public Vector2 ConvertGridPosToWorldPos(int x, int y)
 	{
-		return piecesParent.rect.position + (pieceSize * .5f) + new Vector2((pieceSize.x * x) + padding.left, (pieceSize.y * y) + padding.bottom);
+		return (Vector2)piecesParent.transform.position + (pieceSize * .5f) + new Vector2((pieceSize.x * x) + padding.left, (pieceSize.y * y) + padding.bottom);
 	}
 
 #if UNITY_EDITOR

@@ -244,6 +244,13 @@ public class Game_Manager : MonoBehaviour
 
 				for (int i = 0; i < match.Count; i++)
 				{
+					match[i].image.color = Color.red;
+				}
+
+				yield return new WaitForSeconds(board.fallDuration * 3);
+
+				for (int i = 0; i < match.Count; i++)
+				{
 					board.RemovePiece(match[i]);
 				}
 			}
@@ -347,7 +354,7 @@ public class Game_Manager : MonoBehaviour
 		{
 			for (int y = -1; y <= 1; y++)
 			{
-				if (Mathf.Abs(x) + Mathf.Abs(y) == 1) //TODO If we remove this condition, we can check for the diagonal pieces too!
+				if (Mathf.Abs(x) + Mathf.Abs(y) != 0) //TODO If we remove this condition, we can check for the diagonal pieces too!
 				{
 					List<GamePiece> currentMatch = new List<GamePiece>();
 					CheckNextPiece(p, currentMatch, x, y);
@@ -367,7 +374,7 @@ public class Game_Manager : MonoBehaviour
 		//Check if the next piece in the defined direction exists
 		GamePiece nextPiece = null;
 		Vector2Int nextPos = new Vector2Int(p.boardPos.x + dirX, p.boardPos.y + dirY);
-
+		
 		if (nextPos.x >= 0 &&
 			 nextPos.y >= 0 &&
 			 nextPos.x < board.boardSize.x &&

@@ -129,6 +129,7 @@ public class Board : MonoBehaviour
 		piece.rectTransform.anchorMin = piece.rectTransform.anchorMax = Vector2.one * .5f; //Centralizes the anchors
 		piece.rectTransform.sizeDelta = pieceSize - spacing;
 		piece.rectTransform.localScale = Vector3.one;
+		piece.image.color = Color.white;
 		SetPieceGridPosition(piece, x, y);
 		piece.Initialize();
 
@@ -165,7 +166,7 @@ public class Board : MonoBehaviour
 		int dstX = Mathf.Abs(p1.boardPos.x - p2.boardPos.x);
 		int dstY = Mathf.Abs(p1.boardPos.y - p2.boardPos.y);
 
-		if ((dstX == 1 || dstY == 1) && dstX + dstY == 1) //TODO We can easily adapt the game to accept diagonal swaps by changing this condition
+		if ((dstX == 1 && dstY == 0) || (dstX == 0 && dstY == 1) || (dstX == 1 && dstY == 1)) //TODO We can easily adapt the game to accept diagonal swaps by changing this condition
 		{
 			Vector2Int pos1 = p1.boardPos;
 			SetPieceGridPosition(p1, p2.boardPos.x, p2.boardPos.y);

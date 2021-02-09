@@ -1,5 +1,5 @@
 # Bejeweled-Clone
-Um clone do jogo Bejeweled feito como teste para uma vaga de Desenvolvedor Unity na Gazeus Games
+A Match-3 game I made as a test.
 
 
 ## Packages used:

@@ -1,6 +1,7 @@
 # Bejeweled-Clone
 A Match-3 game I made as a test.
 
+![Match-3](Content/match-3.gif)
 
 ## Packages used:
 - Text Mesh Pro

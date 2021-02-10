@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class GamePiece : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
-    public int typeID;
+	public int typeID;
 	public RectTransform rectTransform { get; private set; }
 	public Image image;
 	public Vector2Int boardPos;

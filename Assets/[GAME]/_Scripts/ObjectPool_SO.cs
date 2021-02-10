@@ -5,10 +5,10 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Custom/Object Pool")]
 public class ObjectPool_SO : ScriptableObject
 {
-    public PoolableObject prefab;
+	public PoolableObject prefab;
 	[SerializeField] private int initialAmount;
 
-    private Queue<PoolableObject> pool = new Queue<PoolableObject>();
+	private Queue<PoolableObject> pool = new Queue<PoolableObject>();
 	private Transform poolParent;
 
 	public void Initialize()
@@ -23,7 +23,7 @@ public class ObjectPool_SO : ScriptableObject
 		}
 	}
 
-    public PoolableObject GetPooledObject()
+	public PoolableObject GetPooledObject()
 	{
 		PoolableObject obj = pool.Count > 0 && !pool.Peek().gameObject.activeSelf ? pool.Dequeue() : CreateObject();
 		obj.gameObject.SetActive(true);
@@ -35,9 +35,9 @@ public class ObjectPool_SO : ScriptableObject
 		return GetPooledObject().GetComponent<T>();
 	}
 
-    private PoolableObject CreateObject()
+	private PoolableObject CreateObject()
 	{
-		if(poolParent == null)
+		if (poolParent == null)
 		{
 			poolParent = new GameObject(this.name + "(Pool)").transform;
 			DontDestroyOnLoad(poolParent);
@@ -50,7 +50,7 @@ public class ObjectPool_SO : ScriptableObject
 		return obj;
 	}
 
-    public void ReturnToPool(PoolableObject obj)
+	public void ReturnToPool(PoolableObject obj)
 	{
 		obj.transform.SetParent(poolParent);
 		obj.gameObject.SetActive(false);

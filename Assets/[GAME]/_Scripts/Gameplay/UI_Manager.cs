@@ -17,8 +17,8 @@ public class UI_Manager : MonoBehaviour
 	[SerializeField] private GameObject gameOverPanel;
 
 	private Board board;
-    private Game_Manager manager;
-	
+	private Game_Manager manager;
+
 
 	private void Awake()
 	{

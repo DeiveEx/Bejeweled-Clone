@@ -14,7 +14,7 @@ public class Board : MonoBehaviour
 
 	public Vector2Int boardSize;
 	[SerializeField] private RectOffset padding;
-    [SerializeField] private Vector2 spacing;
+	[SerializeField] private Vector2 spacing;
 	public RectTransform piecesParent;
 	public ObjectPool_SO[] availablePieces;
 	public GamePiece[,] grid;
@@ -41,7 +41,7 @@ public class Board : MonoBehaviour
 	public void GenerateBoard()
 	{
 #if UNITY_EDITOR
-		if(useSeed)
+		if (useSeed)
 			Random.InitState(seed);
 #endif
 

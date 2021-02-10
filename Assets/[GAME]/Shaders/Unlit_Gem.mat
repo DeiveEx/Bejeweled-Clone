@@ -31,7 +31,7 @@ Material:
     - PixelSnap: 0
     - _Diagonal: 1
     - _EnableExternalAlpha: 0
-    - _Offset: 1
+    - _Offset: 0.3709376
     - _Size: 100
     - _Speed: 2
     - _Strenght: 0.5

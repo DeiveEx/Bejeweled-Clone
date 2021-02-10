@@ -193,7 +193,7 @@ public class Game_Manager : MonoBehaviour
 	{
 		currentState = GameState.wait;
 
-		if(board.SwapPieces(p1, p2))
+		if (board.SwapPieces(p1, p2))
 		{
 			//Animate the visuals
 			p1.AnimatePositionOnGrid(p2.boardPos, p1.boardPos, board.swapDuration, board.swapCurve);
@@ -208,7 +208,7 @@ public class Game_Manager : MonoBehaviour
 		//If after the swipe a match was NOT found, we return the pieces to their original positions
 		if (CheckForMatches() == 0)
 		{
-			if(board.SwapPieces(p1, p2))
+			if (board.SwapPieces(p1, p2))
 			{
 				//Animate the visuals
 				p1.AnimatePositionOnGrid(p2.boardPos, p1.boardPos, board.swapDuration, board.swapCurve);
@@ -257,7 +257,7 @@ public class Game_Manager : MonoBehaviour
 				{
 					GamePiece p = board.grid[x, y];
 
-					if(p != null)
+					if (p != null)
 					{
 						Vector2Int startPos = new Vector2Int(x, y);
 						board.DropPiece(p);

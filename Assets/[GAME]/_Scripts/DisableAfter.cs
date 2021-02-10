@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class DisableAfter : MonoBehaviour
 {
-    public bool playOnEnable = true;
+	public bool playOnEnable = true;
 	public float delay = 1;
 
-    private PoolableObject poolable;
+	private PoolableObject poolable;
 
 	private void Awake()
 	{
@@ -23,7 +23,7 @@ public class DisableAfter : MonoBehaviour
 	public void DisableObject()
 	{
 		//If this is a poolable object, we return it to pool, and the pool will disable it
-		if(poolable != null)
+		if (poolable != null)
 		{
 			poolable.ReturnToPool();
 			return;

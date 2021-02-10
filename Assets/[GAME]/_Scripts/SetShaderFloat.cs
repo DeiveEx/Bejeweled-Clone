@@ -5,10 +5,10 @@ using UnityEngine.UI;
 
 public class SetShaderFloat : MonoBehaviour
 {
-    [SerializeField] private Image image;
-    [SerializeField] private string propertyName;
-    [SerializeField] private bool useRandomRange;
-    [SerializeField] private float value;
+	[SerializeField] private Image image;
+	[SerializeField] private string propertyName;
+	[SerializeField] private bool useRandomRange;
+	[SerializeField] private float value;
 
 	private void Awake()
 	{
